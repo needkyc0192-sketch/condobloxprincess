@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CONDOBLOX Map Live — By Princess</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink: #ff5fa2;
+    --pink-soft: rgba(255,95,162,.55);
+    --pink-glow: rgba(255,95,162,.35);
+    --red: #ff3b3b;
+    --bg: #050307;
+    --card: rgba(18,10,20,.72);
+    --border: rgba(255,95,162,.18);
+    --text: #f6eef4;
+    --muted: #b9a8b6;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 60px;
+  }
+
+  /* ===== Heart Particles Canvas ===== */
+  #hearts{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:0;
+    opacity:.55;
+  }
+
+  /* ===== Ambient glow ===== */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:-20%;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(255,95,162,.10), transparent 45%),
+      radial-gradient(circle at 80% 20%, rgba(255,95,162,.08), transparent 45%);
+    pointer-events:none;
+    z-index:0;
+    animation:drift 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift{
+    0%{transform:translate(0,0) scale(1);}
+    100%{transform:translate(2%,-2%) scale(1.05);}
+  }
+
+  /* ===== Header ===== */
+  .brand{
+    position:relative;
+    z-index:2;
+    text-align:center;
+    margin-bottom:22px;
+    animation:fadeDown .8s ease both;
+  }
+  .brand .tag{
+    display:inline-block;
+    font-family:'Orbitron',sans-serif;
+    font-size:11px;
+    letter-spacing:3px;
+    color:var(--pink);
+    border:1px solid var(--border);
+    padding:6px 14px;
+    border-radius:999px;
+    background:rgba(255,95,162,.06);
+    margin-bottom:12px;
+    text-transform:uppercase;
+  }
+  .brand h1{
+    font-family:'Orbitron',sans-serif;
+    font-weight:900;
+    font-size:clamp(1.5rem,5vw,2.6rem);
+    letter-spacing:1px;
+    background:linear-gradient(90deg,#fff 0%, #ffb8d3 50%, var(--pink) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 0 40px var(--pink-glow);
+  }
+  .brand p{
+    color:var(--muted);
+    font-size:12px;
+    letter-spacing:4px;
+    margin-top:8px;
+    text-transform:uppercase;
+    font-family:'Orbitron',sans-serif;
+  }
+
+  /* ===== Live Card ===== */
+  .live-card{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:960px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:14px;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,.6),
+      0 0 0 1px rgba(255,255,255,.02) inset,
+      0 0 80px rgba(255,95,162,.06);
+    animation:fadeUp .9s ease both;
+  }
+
+  .player-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    border-radius:14px;
+    overflow:hidden;
+    background:#000;
+    box-shadow:0 0 0 1px rgba(255,95,162,.12) inset;
+  }
+  .player-wrap video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  /* Overlay Live Badge (kiri atas) */
+  .live-badge{
+    position:absolute;
+    top:14px;
+    left:14px;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(10,5,10,.72);
+    border:1px solid rgba(255,59,59,.4);
+    padding:6px 12px;
+    border-radius:999px;
+    backdrop-filter:blur(6px);
+    font-family:'Orbitron',sans-serif;
+    font-size:11px;
+    letter-spacing:2px;
+    color:#fff;
+  }
+  .dot-live{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--red);
+    box-shadow:0 0 10px var(--red);
+    animation:pulse 1.2s infinite;
+  }
+  @keyframes pulse{
+    0%,100%{transform:scale(1);opacity:1;}
+    50%{transform:scale(1.4);opacity:.6;}
+  }
+
+  /* ==== Red Live Texts (pojok kanan video) ==== */
+  .live-texts{
+    position:absolute;
+    top:14px;
+    right:14px;
+    z-index:5;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:6px;
+    text-align:right;
+    pointer-events:none;
+  }
+  .live-texts span{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(8px,1.6vw,11px);
+    font-weight:700;
+    letter-spacing:1.5px;
+    color:var(--red);
+    text-shadow:0 0 8px rgba(255,59,59,.75), 0 0 2px rgba(255,0,0,.5);
+    background:rgba(0,0,0,.35);
+    padding:3px 8px;
+    border-radius:6px;
+    backdrop-filter:blur(3px);
+    animation:blink 2.4s infinite;
+  }
+  .live-texts span:nth-child(2){animation-delay:.8s;}
+  .live-texts span:nth-child(3){animation-delay:1.6s;}
+  @keyframes blink{
+    0%,100%{opacity:1;}
+    50%{opacity:.55;}
+  }
+
+  /* Play Overlay */
+  .play-overlay{
+    position:absolute;
+    inset:0;
+    z-index:6;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle at center, rgba(0,0,0,.35), rgba(0,0,0,.75));
+    cursor:pointer;
+    transition:opacity .4s ease;
+  }
+  .play-overlay.hidden{opacity:0;pointer-events:none;}
+  .play-btn{
+    width:88px;height:88px;
+    border-radius:50%;
+    border:1.5px solid var(--pink-soft);
+    background:rgba(255,95,162,.1);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 40px var(--pink-glow);
+    transition:transform .25s ease, background .25s ease;
+  }
+  .play-overlay:hover .play-btn{
+    transform:scale(1.08);
+    background:rgba(255,95,162,.18);
+  }
+  .play-btn svg{width:34px;height:34px;fill:var(--pink);margin-left:4px;}
+
+  /* Info Bar */
+  .info-bar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:14px;
+    padding:12px 16px;
+    background:rgba(255,255,255,.02);
+    border:1px solid var(--border);
+    border-radius:12px;
+  }
+  .players{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Orbitron',sans-serif;
+    font-size:13px;
+  }
+  .players .icon{
+    width:10px;height:10px;border-radius:50%;background:#4ade80;
+    box-shadow:0 0 10px #4ade80;animation:pulse 1.6s infinite;
+  }
+  .players #playerCount{
+    color:var(--pink);font-weight:700;min-width:42px;display:inline-block;text-align:center;
+    transition:color .2s ease;
+  }
+  .players #playerCount.up{color:#4ade80;}
+  .players #playerCount.down{color:var(--red);}
+  .players .label{color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+
+  .join-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 26px;
+    border-radius:999px;
+    font-family:'Orbitron',sans-serif;
+    font-size:12px;
+    letter-spacing:2px;
+    font-weight:700;
+    color:#fff;
+    text-decoration:none;
+    text-transform:uppercase;
+    background:linear-gradient(135deg,rgba(255,95,162,.22),rgba(255,95,162,.08));
+    border:1px solid var(--pink-soft);
+    box-shadow:0 0 20px rgba(255,95,162,.25),0 0 0 1px rgba(255,255,255,.03) inset;
+    transition:all .3s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .join-btn::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);
+    transform:translateX(-100%);
+    transition:transform .6s ease;
+  }
+  .join-btn:hover::before{transform:translateX(100%);}
+  .join-btn:hover{
+    box-shadow:0 0 35px rgba(255,95,162,.45),0 0 0 1px rgba(255,255,255,.05) inset;
+    transform:translateY(-2px);
+  }
+  .join-btn svg{width:16px;height:16px;fill:var(--pink);}
+
+  footer{
+    position:relative;
+    z-index:2;
+    margin-top:28px;
+    font-size:11px;
+    letter-spacing:3px;
+    color:var(--muted);
+    text-transform:uppercase;
+    font-family:'Orbitron',sans-serif;
+    text-align:center;
+  }
+  footer b{color:var(--pink);font-weight:700;}
+
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-15px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+  @media(max-width:600px){
+    .info-bar{flex-direction:column;gap:10px;}
+    .join-btn{width:100%;justify-content:center;}
+    .play-btn{width:64px;height:64px;}
+    .play-btn svg{width:24px;height:24px;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="hearts"></canvas>
+
+<header class="brand">
+  <span class="tag">● Live Stream</span>
+  <h1>CONDOBLOX Map Live</h1>
+  <p>Condoblox By Princess</p>
+</header>
+
+<main class="live-card">
+  <div class="player-wrap">
+    <video id="liveVideo" playsinline loop muted preload="auto">
+      <source src="https://files.catbox.moe/7l5i3d.mp4" type="video/mp4" />
+    </video>
+
+    <div class="live-badge">
+      <span class="dot-live"></span> LIVE
+    </div>
+
+    <div class="live-texts">
+      <span>● LIVE STREAMING</span>
+      <span>● MAP AKTIF</span>
+      <span>● PRIVATE SERVER</span>
+    </div>
+
+    <div class="play-overlay" id="playOverlay">
+      <div class="play-btn">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <div class="players">
+      <span class="icon"></span>
+      <span id="playerCount">1000</span>
+      <span class="label">Player Aktif</span>
+    </div>
+    <a class="join-btn"
+       href="https://roblox.com.ms/games/139410450104051/Chat-with-AI-Emiko?privateServerLinkCode=77366610760114668459102463052467"
+       target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v3H3v4h7v3zm9-14h-7v2h7v14h-7v2h7a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+      Join Map
+    </a>
+  </div>
+</main>
+
+<footer>© <b>CONDOBLOX By Princess</b> — All Rights Reserved</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ===== HEART PARTICLES ===== */
+  const canvas = document.getElementById('hearts');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let hearts = [];
+  let rafId = null;
+
+  function resizeCanvas(){
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const count = Math.min(26, Math.max(12, Math.floor(W / 55)));
+    hearts = [];
+    for(let i=0;i<count;i++) hearts.push(makeHeart(true));
+  }
+
+  function makeHeart(init){
+    return {
+      x: Math.random() * W,
+      y: init ? Math.random() * H : H + 20,
+      size: 6 + Math.random() * 10,
+      speed: 0.4 + Math.random() * 0.9,
+      sway: Math.random() * Math.PI * 2,
+      swaySpeed: 0.008 + Math.random() * 0.012,
+      swayAmp: 0.4 + Math.random() * 0.8,
+      alpha: 0.08 + Math.random() * 0.18,
+      rot: Math.random() * Math.PI * 2
+    };
+  }
+
+  function drawHeart(x, y, s, alpha, rot){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.scale(s/16, s/16);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#ff5fa2';
+    ctx.beginPath();
+    ctx.moveTo(0, 4);
+    ctx.bezierCurveTo(0, 0, -6, -4, -10, 0);
+    ctx.bezierCurveTo(-16, 6, -6, 14, 0, 18);
+    ctx.bezierCurveTo(6, 14, 16, 6, 10, 0);
+    ctx.bezierCurveTo(6, -4, 0, 0, 0, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function animHearts(){
+    ctx.clearRect(0, 0, W, H);
+    for(let i=0;i<hearts.length;i++){
+      const h = hearts[i];
+      h.y -= h.speed;
+      h.sway += h.swaySpeed;
+      h.rot += 0.005;
+      const px = h.x + Math.sin(h.sway) * (h.swayAmp * 12);
+      drawHeart(px, h.y, h.size, h.alpha, h.rot);
+      if(h.y < -30){
+        hearts[i] = makeHeart(false);
+      }
+    }
+    rafId = requestAnimationFrame(animHearts);
+  }
+
+  resizeCanvas();
+  animHearts();
+
+  let resizeTimer = null;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resizeCanvas, 180);
+  }, {passive:true});
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden){
+      if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+    } else {
+      if(!rafId) rafId = requestAnimationFrame(animHearts);
+    }
+  });
+
+  /* ===== VIDEO & PLAY ===== */
+  const video   = document.getElementById('liveVideo');
+  const overlay = document.getElementById('playOverlay');
+
+  function tryAutoplay(){
+    const p = video.play();
+    if(p && typeof p.then === 'function'){
+      p.then(function(){ overlay.classList.add('hidden'); })
+       .catch(function(){ overlay.classList.remove('hidden'); });
+    }
+  }
+  tryAutoplay();
+
+  overlay.addEventListener('click', function(){
+    video.muted = false;
+    video.play().then(function(){
+      overlay.classList.add('hidden');
+    }).catch(function(){
+      video.muted = true;
+      video.play();
+      overlay.classList.add('hidden');
+    });
+  });
+
+  video.addEventListener('pause', function(){
+    if(!document.hidden && video.currentTime < video.duration - 0.5){
+      setTimeout(function(){ video.play().catch(function(){}); }, 300);
+    }
+  });
+
+  video.addEventListener('error', function(){
+    console.warn('Video gagal load, cek URL.');
+  });
+
+  /* ===== PLAYER COUNTER ===== */
+  const counterEl = document.getElementById('playerCount');
+  let count = 1000;
+  const MIN = 850, MAX = 1240;
+
+  function tick(){
+    const delta = Math.random() < 0.5 ? -1 : 1;
+    const step = Math.floor(Math.random() * 6) + 1;
+    let next = count + delta * step;
+    if(next < MIN) next = MIN + Math.floor(Math.random()*15);
+    if(next > MAX) next = MAX - Math.floor(Math.random()*15);
+
+    counterEl.classList.remove('up','down');
+    if(next > count) counterEl.classList.add('up');
+    else if(next < count) counterEl.classList.add('down');
+
+    count = next;
+    counterEl.textContent = count;
+
+    setTimeout(tick, 1200 + Math.random() * 2200);
+  }
+  setTimeout(tick, 1500);
+
+})();
+</script>
+</body>
+</html>
